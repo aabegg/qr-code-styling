@@ -7,6 +7,8 @@ import { RequiredOptions } from "./QROptions";
 import gradientTypes from "../constants/gradientTypes";
 import { QRCode, Gradient, FilterFunction } from "../types";
 
+import { Canvas, createCanvas, Image, NodeCanvasRenderingContext2D } from "canvas";
+
 const squareMask = [
   [1, 1, 1, 1, 1, 1, 1],
   [1, 0, 0, 0, 0, 0, 1],
@@ -28,20 +30,23 @@ const dotMask = [
 ];
 
 export default class QRCanvas {
-  _canvas: HTMLCanvasElement;
+  _canvas: Canvas;
   _options: RequiredOptions;
   _qr?: QRCode;
-  _image?: HTMLImageElement;
+  _image?: Image;
 
   //TODO don't pass all options to this class
   constructor(options: RequiredOptions) {
-    this._canvas = document.createElement("canvas");
-    this._canvas.width = options.width;
-    this._canvas.height = options.height;
+    // this._canvas = document.createElement("canvas");
+    // this._canvas.width = options.width;
+    // this._canvas.height = options.height;
+
+    this._canvas = createCanvas(options.width, options.height);
+
     this._options = options;
   }
 
-  get context(): CanvasRenderingContext2D | null {
+  get context(): NodeCanvasRenderingContext2D | null {
     return this._canvas.getContext("2d");
   }
 
@@ -53,7 +58,7 @@ export default class QRCanvas {
     return this._canvas.height;
   }
 
-  getCanvas(): HTMLCanvasElement {
+  getCanvas(): Canvas {
     return this._canvas;
   }
 
@@ -363,9 +368,9 @@ export default class QRCanvas {
         return reject("Image is not defined");
       }
 
-      if (typeof options.imageOptions.crossOrigin === "string") {
-        image.crossOrigin = options.imageOptions.crossOrigin;
-      }
+      // if (typeof options.imageOptions.crossOrigin === "string") {
+      //   image.crossOrigin = options.imageOptions.crossOrigin;
+      // }
 
       this._image = image;
       image.onload = (): void => {
