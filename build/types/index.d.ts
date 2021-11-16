@@ -1,3 +1,4 @@
+import { ImagePreProzessResult } from "../core/QRCodePreprozessImage";
 export interface UnknownObject {
     [key: string]: any;
 }
@@ -68,6 +69,7 @@ export declare type Options = {
         crossOrigin?: string;
         margin?: number;
     };
+    imagePreProzess?: ImagePreProzessResult;
     dotsOptions?: {
         type?: DotType;
         color?: string;

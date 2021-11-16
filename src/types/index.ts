@@ -1,3 +1,5 @@
+import { ImagePreProzessResult } from "../core/QRCodePreprozessImage";
+
 export interface UnknownObject {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
@@ -116,6 +118,7 @@ export type Options = {
     crossOrigin?: string;
     margin?: number;
   };
+  imagePreProzess?: ImagePreProzessResult;
   dotsOptions?: {
     type?: DotType;
     color?: string;

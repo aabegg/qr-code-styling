@@ -12,8 +12,10 @@ export default class QRCodeStyling {
     _canvasDrawingPromise?: Promise<void>;
     _svgDrawingPromise?: Promise<void>;
     constructor(options?: Partial<Options>);
-    _getQRStylingElement(extension?: Extension): Promise<QRCanvas | QRSVG>;
+    _getQRStylingElement(): Promise<QRCanvas | QRSVG>;
     update(options?: Partial<Options>): void;
     getRawData(extension?: Extension): Promise<Buffer | null>;
+    saveAsTmpFile(extension?: Extension): Promise<string>;
     _getUrlFromQRCanvas(canvas: QRCanvas, extension: Extension): string;
+    static createTmpFile(): Promise<string>;
 }

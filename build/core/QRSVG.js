@@ -68,19 +68,24 @@ class QRSVG {
         };
         this._qr = qr;
         if (this._options.image) {
-            await this.loadImage();
-            if (!this._image)
-                return;
-            const { imageOptions, qrOptions } = this._options;
-            const coverLevel = imageOptions.imageSize * errorCorrectionPercents_1.default[qrOptions.errorCorrectionLevel];
-            const maxHiddenDots = Math.floor(coverLevel * count * count);
-            drawImageSize = calculateImageSize_1.default({
-                originalWidth: this._image.width,
-                originalHeight: this._image.height,
-                maxHiddenDots,
-                maxHiddenAxisDots: count - 14,
-                dotSize
-            });
+            if (this._options.imagePreProzess) {
+                drawImageSize = this._options.imagePreProzess.imageSize.drawImageSize;
+            }
+            else {
+                await this.loadImage();
+                if (!this._image)
+                    return;
+                const { imageOptions, qrOptions } = this._options;
+                const coverLevel = imageOptions.imageSize * errorCorrectionPercents_1.default[qrOptions.errorCorrectionLevel];
+                const maxHiddenDots = Math.floor(coverLevel * count * count);
+                drawImageSize = calculateImageSize_1.default({
+                    originalWidth: this._image.width,
+                    originalHeight: this._image.height,
+                    maxHiddenDots,
+                    maxHiddenAxisDots: count - 14,
+                    dotSize
+                });
+            }
         }
         this.clear();
         this.drawBackground();
@@ -104,8 +109,46 @@ class QRSVG {
         });
         this.drawCorners();
         if (this._options.image) {
-            this.drawImage({ width: drawImageSize.width, height: drawImageSize.height, count, dotSize });
+            if (this._options.imagePreProzess) {
+                this._element.appendChild(this._options.imagePreProzess.svgElement);
+            }
+            else {
+                this.drawImage({ width: drawImageSize.width, height: drawImageSize.height, count, dotSize });
+            }
         }
+    }
+    async preClacImageSizeAndPosition(qr) {
+        const count = qr.getModuleCount();
+        const minSize = Math.min(this._options.width, this._options.height) - this._options.margin * 2;
+        const dotSize = Math.floor(minSize / count);
+        let drawImageSize = {
+            hideXDots: 0,
+            hideYDots: 0,
+            width: 0,
+            height: 0
+        };
+        this._qr = qr;
+        await this.loadImage();
+        if (!this._image)
+            return;
+        const { imageOptions, qrOptions } = this._options;
+        const coverLevel = imageOptions.imageSize * errorCorrectionPercents_1.default[qrOptions.errorCorrectionLevel];
+        const maxHiddenDots = Math.floor(coverLevel * count * count);
+        drawImageSize = calculateImageSize_1.default({
+            originalWidth: this._image.width,
+            originalHeight: this._image.height,
+            maxHiddenDots,
+            maxHiddenAxisDots: count - 14,
+            dotSize
+        });
+        const options = this._options;
+        const xBeginning = Math.floor((options.width - count * dotSize) / 2);
+        const yBeginning = Math.floor((options.height - count * dotSize) / 2);
+        const dx = xBeginning + options.imageOptions.margin + (count * dotSize - drawImageSize.width) / 2;
+        const dy = yBeginning + options.imageOptions.margin + (count * dotSize - drawImageSize.height) / 2;
+        const dw = drawImageSize.width - options.imageOptions.margin * 2;
+        const dh = drawImageSize.height - options.imageOptions.margin * 2;
+        return { drawImageSize, dx, dy, dw, dh };
     }
     drawBackground() {
         var _a, _b;

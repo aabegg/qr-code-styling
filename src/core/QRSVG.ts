@@ -1,4 +1,4 @@
-import calculateImageSize from "../tools/calculateImageSize";
+import calculateImageSize, { ImageSizeResult } from "../tools/calculateImageSize";
 import errorCorrectionPercents from "../constants/errorCorrectionPercents";
 import QRDot from "../figures/dot/svg/QRDot";
 import QRCornerSquare from "../figures/cornerSquare/svg/QRCornerSquare";
@@ -29,6 +29,14 @@ const dotMask = [
   [0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0]
 ];
+
+export interface PrecalcImageSizeResult {
+  drawImageSize: ImageSizeResult;
+  dx: number;
+  dy: number;
+  dw: number;
+  dh: number;
+}
 
 export default class QRSVG {
   _xmlDoc = new DOMImplementation().createDocument(null, null);
@@ -86,20 +94,24 @@ export default class QRSVG {
     this._qr = qr;
 
     if (this._options.image) {
-      //We need it to get image size
-      await this.loadImage();
-      if (!this._image) return;
-      const { imageOptions, qrOptions } = this._options;
-      const coverLevel = imageOptions.imageSize * errorCorrectionPercents[qrOptions.errorCorrectionLevel];
-      const maxHiddenDots = Math.floor(coverLevel * count * count);
+      if (this._options.imagePreProzess) {
+        drawImageSize = this._options.imagePreProzess.imageSize.drawImageSize;
+      } else {
+        //We need it to get image size
+        await this.loadImage();
+        if (!this._image) return;
+        const { imageOptions, qrOptions } = this._options;
+        const coverLevel = imageOptions.imageSize * errorCorrectionPercents[qrOptions.errorCorrectionLevel];
+        const maxHiddenDots = Math.floor(coverLevel * count * count);
 
-      drawImageSize = calculateImageSize({
-        originalWidth: this._image.width,
-        originalHeight: this._image.height,
-        maxHiddenDots,
-        maxHiddenAxisDots: count - 14,
-        dotSize
-      });
+        drawImageSize = calculateImageSize({
+          originalWidth: this._image.width,
+          originalHeight: this._image.height,
+          maxHiddenDots,
+          maxHiddenAxisDots: count - 14,
+          dotSize
+        });
+      }
     }
 
     this.clear();
@@ -129,8 +141,51 @@ export default class QRSVG {
     this.drawCorners();
 
     if (this._options.image) {
-      this.drawImage({ width: drawImageSize.width, height: drawImageSize.height, count, dotSize });
+      if (this._options.imagePreProzess) {
+        this._element.appendChild(this._options.imagePreProzess.svgElement);
+      } else {
+        this.drawImage({ width: drawImageSize.width, height: drawImageSize.height, count, dotSize });
+      }
     }
+  }
+
+  async preClacImageSizeAndPosition(qr: QRCode): Promise<PrecalcImageSizeResult> {
+    const count = qr.getModuleCount();
+    const minSize = Math.min(this._options.width, this._options.height) - this._options.margin * 2;
+    const dotSize = Math.floor(minSize / count);
+    let drawImageSize = {
+      hideXDots: 0,
+      hideYDots: 0,
+      width: 0,
+      height: 0
+    };
+
+    this._qr = qr;
+
+    //We need it to get image size
+    await this.loadImage();
+    if (!this._image) return;
+    const { imageOptions, qrOptions } = this._options;
+    const coverLevel = imageOptions.imageSize * errorCorrectionPercents[qrOptions.errorCorrectionLevel];
+    const maxHiddenDots = Math.floor(coverLevel * count * count);
+
+    drawImageSize = calculateImageSize({
+      originalWidth: this._image.width,
+      originalHeight: this._image.height,
+      maxHiddenDots,
+      maxHiddenAxisDots: count - 14,
+      dotSize
+    });
+
+    const options = this._options;
+    const xBeginning = Math.floor((options.width - count * dotSize) / 2);
+    const yBeginning = Math.floor((options.height - count * dotSize) / 2);
+    const dx = xBeginning + options.imageOptions.margin + (count * dotSize - drawImageSize.width) / 2;
+    const dy = yBeginning + options.imageOptions.margin + (count * dotSize - drawImageSize.height) / 2;
+    const dw = drawImageSize.width - options.imageOptions.margin * 2;
+    const dh = drawImageSize.height - options.imageOptions.margin * 2;
+    
+    return { drawImageSize, dx, dy, dw, dh };
   }
 
   drawBackground(): void {

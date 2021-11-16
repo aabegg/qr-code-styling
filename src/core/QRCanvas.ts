@@ -97,6 +97,8 @@ export default class QRCanvas {
         maxHiddenAxisDots: count - 14,
         dotSize
       });
+
+      console.log(drawImageSize);
     }
 
     this.clear();

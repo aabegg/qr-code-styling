@@ -1,6 +1,14 @@
+import { ImageSizeResult } from "../tools/calculateImageSize";
 import { RequiredOptions } from "./QROptions";
 import { QRCode, FilterFunction, Gradient } from "../types";
 import { Image } from "canvas";
+export interface PrecalcImageSizeResult {
+    drawImageSize: ImageSizeResult;
+    dx: number;
+    dy: number;
+    dw: number;
+    dh: number;
+}
 export default class QRSVG {
     _xmlDoc: XMLDocument;
     _element: SVGSVGElement;
@@ -17,6 +25,7 @@ export default class QRSVG {
     getElement(): SVGElement;
     clear(): void;
     drawQR(qr: QRCode): Promise<void>;
+    preClacImageSizeAndPosition(qr: QRCode): Promise<PrecalcImageSizeResult>;
     drawBackground(): void;
     drawDots(filter?: FilterFunction): void;
     drawCorners(): void;

@@ -3,12 +3,15 @@ import mergeDeep from "../tools/merge";
 import QRCanvas from "./QRCanvas";
 import QRSVG from "./QRSVG";
 import drawTypes from "../constants/drawTypes";
+import fs from "fs";
 
 import defaultOptions, { RequiredOptions } from "./QROptions";
 import sanitizeOptions from "../tools/sanitizeOptions";
 import { Extension, QRCode, Options } from "../types";
 import qrcode from "qrcode-generator";
 import { XMLSerializer } from "@xmldom/xmldom";
+import tmp from "tmp";
+
 export default class QRCodeStyling {
   _options: RequiredOptions;
   _container?: HTMLElement;
@@ -29,10 +32,10 @@ export default class QRCodeStyling {
   //   }
   // }
 
-  async _getQRStylingElement(extension: Extension = "png"): Promise<QRCanvas | QRSVG> {
+  async _getQRStylingElement(): Promise<QRCanvas | QRSVG> {
     if (!this._qr) throw "QR code is empty";
 
-    if (extension.toLowerCase() === "svg") {
+    if (this._options.type === "svg") {
       let promise, svg: QRSVG;
 
       if (this._svg && this._svgDrawingPromise) {
@@ -114,10 +117,10 @@ export default class QRCodeStyling {
 
   async getRawData(extension: Extension = "png"): Promise<Buffer | null> {
     if (!this._qr) throw "QR code is empty";
-    const element = await this._getQRStylingElement(extension);
+    const element = await this._getQRStylingElement();
 
     let dataUri;
-    if (extension.toLowerCase() === "svg") {
+    if (this._options.type === "svg") {
       const serializer = new XMLSerializer();
       const source = serializer.serializeToString(((element as unknown) as QRSVG).getElement());
 
@@ -137,6 +140,13 @@ export default class QRCodeStyling {
       return Buffer.from(data, "base64");
     }
     return null;
+  }
+
+  async saveAsTmpFile(extension: Extension = "png"): Promise<string> {
+    const buffer = await this.getRawData(extension);
+    const path = await QRCodeStyling.createTmpFile();
+    fs.writeFileSync(path, buffer);
+    return path;
   }
 
   // async download(downloadOptions?: Partial<DownloadOptions> | string): Promise<void> {
@@ -180,5 +190,17 @@ export default class QRCodeStyling {
     } else {
       return canvas.getCanvas().toDataURL("image/jpeg");
     }
+  }
+
+  static createTmpFile(): Promise<string> {
+    return new Promise(function (resolve, reject) {
+      tmp.file(function _tempFileCreated(err, path, fd) {
+        if (err) {
+          return reject(err);
+        }
+
+        resolve(path);
+      });
+    });
   }
 }

@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.drawTypes = exports.qrTypes = exports.modes = exports.errorCorrectionPercents = exports.errorCorrectionLevels = exports.cornerSquareTypes = exports.cornerDotTypes = exports.dotTypes = void 0;
+exports.QRCodePreProzessImage = exports.drawTypes = exports.qrTypes = exports.modes = exports.errorCorrectionPercents = exports.errorCorrectionLevels = exports.cornerSquareTypes = exports.cornerDotTypes = exports.dotTypes = void 0;
 const QRCodeStyling_1 = __importDefault(require("./core/QRCodeStyling"));
 const dotTypes_1 = __importDefault(require("./constants/dotTypes"));
 exports.dotTypes = dotTypes_1.default;
@@ -31,6 +31,8 @@ const qrTypes_1 = __importDefault(require("./constants/qrTypes"));
 exports.qrTypes = qrTypes_1.default;
 const drawTypes_1 = __importDefault(require("./constants/drawTypes"));
 exports.drawTypes = drawTypes_1.default;
+const QRCodePreprozessImage_1 = require("./core/QRCodePreprozessImage");
+Object.defineProperty(exports, "QRCodePreProzessImage", { enumerable: true, get: function () { return QRCodePreprozessImage_1.QRCodePreProzessImage; } });
 __exportStar(require("./types"), exports);
 exports.default = QRCodeStyling_1.default;
 //# sourceMappingURL=index.js.map

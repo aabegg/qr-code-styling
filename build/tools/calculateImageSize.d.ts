@@ -5,7 +5,7 @@ interface ImageSizeOptions {
     maxHiddenAxisDots?: number;
     dotSize: number;
 }
-interface ImageSizeResult {
+export interface ImageSizeResult {
     height: number;
     width: number;
     hideYDots: number;
